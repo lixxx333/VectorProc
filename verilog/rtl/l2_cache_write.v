@@ -27,6 +27,7 @@ module l2_cache_write(
 	input                      clk,
 	input                      stall_pipeline,
 	input 			           rd_l2req_valid,
+	input [1:0]	               rd_l2req_core,
 	input [1:0]	               rd_l2req_unit,
 	input [1:0]	               rd_l2req_strand,
 	input [2:0]	               rd_l2req_op,
@@ -38,20 +39,25 @@ module l2_cache_write(
 	input [511:0]              rd_sm_data,
 	input [1:0]                rd_hit_l2_way,
 	input                      rd_cache_hit,
-	input [`NUM_CORES - 1:0]   rd_l1_has_line,
-	input [`NUM_CORES * 2 - 1:0] rd_dir_l1_way,
+	input [`NUM_CORES - 1:0]   rd_l1_has_line_core0,
+	input [`NUM_CORES * 2 - 1:0] rd_dir_l1_way_core0,
+	input [`NUM_CORES - 1:0]   rd_l1_has_line_core1,
+	input [`NUM_CORES * 2 - 1:0] rd_dir_l1_way_core1,
 	input [511:0]              rd_cache_mem_result,
 	input [1:0]                rd_sm_fill_l2_way,
 	input                      rd_store_sync_success,
 	output reg                 wr_l2req_valid = 0,
+	output reg[1:0]	           wr_l2req_core = 0,
 	output reg[1:0]	           wr_l2req_unit = 0,
 	output reg[1:0]	           wr_l2req_strand = 0,
 	output reg[2:0]	           wr_l2req_op = 0,
 	output reg[1:0]	           wr_l2req_way = 0,
 	output reg                 wr_cache_hit = 0,
 	output reg[511:0]          wr_data = 0,
-	output reg[`NUM_CORES - 1:0] wr_l1_has_line = 0,
-	output reg[`NUM_CORES * 2 - 1:0] wr_dir_l1_way = 0,
+	output reg[`NUM_CORES - 1:0] wr_l1_has_line_core0 = 0,
+	output reg[`NUM_CORES * 2 - 1:0] wr_dir_l1_way_core0 = 0,
+	output reg[`NUM_CORES - 1:0] wr_l1_has_line_core1 = 0,
+	output reg[`NUM_CORES * 2 - 1:0] wr_dir_l1_way_core1 = 0,
 	output reg                 wr_has_sm_data = 0,
 	output reg                 wr_update_l2_data = 0,
 	output wire[`L2_CACHE_ADDR_WIDTH -1:0] wr_cache_write_index,
@@ -82,13 +88,16 @@ module l2_cache_write(
 		if (!stall_pipeline)
 		begin
 			wr_l2req_valid <= #1 rd_l2req_valid;
+			wr_l2req_core <= #1 rd_l2req_core;
 			wr_l2req_unit <= #1 rd_l2req_unit;
 			wr_l2req_strand <= #1 rd_l2req_strand;
 			wr_l2req_op <= #1 rd_l2req_op;
 			wr_l2req_way <= #1 rd_l2req_way;
 			wr_has_sm_data <= #1 rd_has_sm_data;
-			wr_l1_has_line <= #1 rd_l1_has_line;
-			wr_dir_l1_way <= #1 rd_dir_l1_way;
+			wr_l1_has_line_core0 <= #1 rd_l1_has_line_core0;
+			wr_dir_l1_way_core0 <= #1 rd_dir_l1_way_core0;
+			wr_l1_has_line_core1 <= #1 rd_l1_has_line_core1;
+			wr_dir_l1_way_core1 <= #1 rd_dir_l1_way_core1;
 			wr_cache_hit <= #1 rd_cache_hit;
 			wr_l2req_op <= #1 rd_l2req_op;
 			wr_store_sync_success <= #1 rd_store_sync_success;

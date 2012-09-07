@@ -28,18 +28,22 @@
 module l2_cache_response(
 	input                         clk,
 	input 		                  wr_l2req_valid,
+	input [1:0]                   wr_l2req_core,
 	input [1:0]                   wr_l2req_unit,
 	input [1:0]	                  wr_l2req_strand,
 	input [2:0]                   wr_l2req_op,
 	input [1:0] 	              wr_l2req_way,
 	input [511:0]	              wr_data,
-	input                         wr_l1_has_line,
-	input [1:0]                   wr_dir_l1_way,
+	input                         wr_l1_has_line_core0,
+	input [1:0]                   wr_dir_l1_way_core0,
+	input                         wr_l1_has_line_core1,
+	input [1:0]                   wr_dir_l1_way_core1,
 	input                         wr_cache_hit,
 	input                         wr_has_sm_data,
 	input                         wr_store_sync_success,
 	output reg                    l2rsp_valid = 0,
 	output reg                    l2rsp_status = 0,
+	output reg[1:0]               l2rsp_core = 0,
 	output reg[1:0]               l2rsp_unit = 0,
 	output reg[1:0]               l2rsp_strand = 0,
 	output reg[1:0]               l2rsp_op = 0,
@@ -70,12 +74,13 @@ module l2_cache_response(
 		begin
 			l2rsp_valid <= #1 1;
 			l2rsp_status <= #1 wr_l2req_op == `L2REQ_STORE_SYNC ? wr_store_sync_success : 0;
+			l2rsp_core <= #1 wr_l2req_core;
 			l2rsp_unit <= #1 wr_l2req_unit;
 			l2rsp_strand <= #1 wr_l2req_strand;
 			l2rsp_op <= #1 response_op;	
-			l2rsp_update <= #1 wr_l1_has_line && is_store;	
-			if (wr_l1_has_line)
-				l2rsp_way <= #1 wr_dir_l1_way; 
+			l2rsp_update <= #1 wr_l1_has_line_core0 && is_store;	
+			if (wr_l1_has_line_core0)
+				l2rsp_way <= #1 wr_dir_l1_way_core0; 
 			else
 				l2rsp_way <= #1 wr_l2req_way; 
 

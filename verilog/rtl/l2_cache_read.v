@@ -31,6 +31,7 @@ module l2_cache_read(
 	input						clk,
 	input						stall_pipeline,
 	input						dir_l2req_valid,
+	input[1:0]					dir_l2req_core,
 	input[1:0]					dir_l2req_unit,
 	input[1:0]					dir_l2req_strand,
 	input[2:0]					dir_l2req_op,
@@ -44,8 +45,10 @@ module l2_cache_read(
 	input[1:0] 					dir_replace_l2_way,
 	input 						dir_cache_hit,
 	input[`L2_TAG_WIDTH - 1:0] 	dir_old_l2_tag,
-	input						dir_l1_has_line,
-	input[`NUM_CORES * 2 - 1:0] dir_l1_way,
+	input						dir_l1_has_line_core0,
+	input[`NUM_CORES * 2 - 1:0] dir_l1_way_core0,
+	input						dir_l1_has_line_core1,
+	input[`NUM_CORES * 2 - 1:0] dir_l1_way_core1,
 	input 						dir_l2_dirty0,	// Note: these imply that the dirty line is also valid
 	input 						dir_l2_dirty1,
 	input 						dir_l2_dirty2,
@@ -56,6 +59,7 @@ module l2_cache_read(
 	input[511:0] 				wr_update_data,
 
 	output reg					rd_l2req_valid = 0,
+	output reg[1:0]				rd_l2req_core = 0,
 	output reg[1:0]				rd_l2req_unit = 0,
 	output reg[1:0]				rd_l2req_strand = 0,
 	output reg[2:0]				rd_l2req_op = 0,
@@ -69,8 +73,10 @@ module l2_cache_read(
 	output reg[1:0] 			rd_hit_l2_way = 0,
 	output reg[1:0] 			rd_replace_l2_way = 0,
 	output reg 					rd_cache_hit = 0,
-	output reg[`NUM_CORES - 1:0] rd_l1_has_line = 0,
-	output reg[`NUM_CORES * 2 - 1:0] rd_dir_l1_way = 0,
+	output reg[`NUM_CORES - 1:0] rd_l1_has_line_core0 = 0,
+	output reg[`NUM_CORES * 2 - 1:0] rd_dir_l1_way_core0 = 0,
+	output reg[`NUM_CORES - 1:0] rd_l1_has_line_core1 = 0,
+	output reg[`NUM_CORES * 2 - 1:0] rd_dir_l1_way_core1 = 0,
 	output [511:0] 				rd_cache_mem_result,
 	output reg[`L2_TAG_WIDTH - 1:0] rd_old_l2_tag = 0,
 	output reg 					rd_line_is_dirty = 0,
@@ -155,6 +161,7 @@ module l2_cache_read(
 		if (!stall_pipeline)
 		begin
 			rd_l2req_valid <= #1 dir_l2req_valid;
+			rd_l2req_core <= #1 dir_l2req_core;
 			rd_l2req_unit <= #1 dir_l2req_unit;
 			rd_l2req_strand <= #1 dir_l2req_strand;
 			rd_l2req_op <= #1 dir_l2req_op;
@@ -167,8 +174,10 @@ module l2_cache_read(
 			rd_hit_l2_way <= #1 dir_hit_l2_way;
 			rd_replace_l2_way <= #1 dir_replace_l2_way;
 			rd_cache_hit <= #1 dir_cache_hit;
-			rd_l1_has_line <= #1 dir_l1_has_line;
-			rd_dir_l1_way <= #1 dir_l1_way;
+			rd_l1_has_line_core0 <= #1 dir_l1_has_line_core0;
+			rd_dir_l1_way_core0 <= #1 dir_l1_way_core0;
+			rd_l1_has_line_core1 <= #1 dir_l1_has_line_core1;
+			rd_dir_l1_way_core1 <= #1 dir_l1_way_core1;
 			rd_old_l2_tag <= #1 dir_old_l2_tag;
 			rd_line_is_dirty <= #1 line_is_dirty_muxed;
 			rd_sm_fill_l2_way <= #1 dir_sm_fill_way;

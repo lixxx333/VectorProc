@@ -26,6 +26,7 @@ module l2_cache_arb(
 	input						stall_pipeline,
 	input						l2req_valid,
 	output reg					l2req_ack,
+	input [1:0]					l2req_core,
 	input [1:0]					l2req_unit,
 	input [1:0]					l2req_strand,
 	input [2:0]					l2req_op,
@@ -33,6 +34,7 @@ module l2_cache_arb(
 	input [25:0]				l2req_address,
 	input [511:0]				l2req_data,
 	input [63:0]				l2req_mask,
+	input [1:0]					smi_l2req_core,				
 	input [1:0]					smi_l2req_unit,				
 	input [1:0]					smi_l2req_strand,
 	input [2:0]					smi_l2req_op,
@@ -45,6 +47,7 @@ module l2_cache_arb(
 	input [1:0]					smi_fill_l2_way,
 	input						smi_duplicate_request,
 	output reg					arb_l2req_valid = 0,
+	output reg[1:0]				arb_l2req_core = 0,
 	output reg[1:0]				arb_l2req_unit = 0,
 	output reg[1:0]				arb_l2req_strand = 0,
 	output reg[2:0]				arb_l2req_op = 0,
@@ -65,6 +68,7 @@ module l2_cache_arb(
 			begin
 				l2req_ack <= #1 0;
 				arb_l2req_valid <= #1 1'b1;
+				arb_l2req_core <= #1 smi_l2req_core;
 				arb_l2req_unit <= #1 smi_l2req_unit;
 				arb_l2req_strand <= #1 smi_l2req_strand;
 				arb_l2req_op <= #1 smi_l2req_op;
@@ -80,6 +84,7 @@ module l2_cache_arb(
 			begin
 				l2req_ack <= #1 l2req_valid;	
 				arb_l2req_valid <= #1 l2req_valid;
+				arb_l2req_core <= #1 l2req_core;
 				arb_l2req_unit <= #1 l2req_unit;
 				arb_l2req_strand <= #1 l2req_strand;
 				arb_l2req_op <= #1 l2req_op;

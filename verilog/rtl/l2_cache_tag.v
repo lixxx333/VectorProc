@@ -27,6 +27,7 @@ module l2_cache_tag
 	(input							clk,
 	input							stall_pipeline,
 	input							arb_l2req_valid,
+	input[1:0]						arb_l2req_core,
 	input[1:0]						arb_l2req_unit,
 	input[1:0]						arb_l2req_strand,
 	input[2:0]						arb_l2req_op,
@@ -38,6 +39,7 @@ module l2_cache_tag
 	input[511:0]					arb_sm_data,
 	input[1:0]						arb_sm_fill_l2_way,
 	output reg						tag_l2req_valid = 0,
+	output reg[1:0]					tag_l2req_core = 0,
 	output reg[1:0]					tag_l2req_unit = 0,
 	output reg[1:0]					tag_l2req_strand = 0,
 	output reg[2:0]					tag_l2req_op = 0,
@@ -146,6 +148,7 @@ module l2_cache_tag
 		if (!stall_pipeline)
 		begin
 			tag_l2req_valid <= #1 arb_l2req_valid;
+			tag_l2req_core <= #1 arb_l2req_core;
 			tag_l2req_unit <= #1 arb_l2req_unit;
 			tag_l2req_strand <= #1 arb_l2req_strand;
 			tag_l2req_op <= #1 arb_l2req_op;

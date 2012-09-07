@@ -32,6 +32,7 @@ module l2_cache_smi
 	(input clk,
 	output stall_pipeline,
 	input						rd_l2req_valid,
+	input[1:0]					rd_l2req_core,
 	input[1:0]					rd_l2req_unit,
 	input[1:0]					rd_l2req_strand,
 	input[2:0]					rd_l2req_op,
@@ -46,6 +47,7 @@ module l2_cache_smi
 	input[`L2_TAG_WIDTH - 1:0] 	rd_old_l2_tag,
 	input 						rd_line_is_dirty,
 	output						smi_duplicate_request,
+	output[1:0]					smi_l2req_core,				
 	output[1:0]					smi_l2req_unit,				
 	output[1:0]					smi_l2req_strand,
 	output[2:0]					smi_l2req_op,
@@ -127,7 +129,7 @@ module l2_cache_smi
 			smi_writeback_data
 		}));
 
-	sync_fifo #(614, REQUEST_QUEUE_LENGTH, REQUEST_QUEUE_ADDR_WIDTH) load_queue(
+	sync_fifo #(616, REQUEST_QUEUE_LENGTH, REQUEST_QUEUE_ADDR_WIDTH) load_queue(
 		.clk(clk),
 		.flush_i(1'b0),
 		.full_o(load_queue_full),
@@ -136,6 +138,7 @@ module l2_cache_smi
 			{ 
 				duplicate_request,
 				rd_replace_l2_way,			// which way to fill
+				rd_l2req_core,
 				rd_l2req_unit,
 				rd_l2req_strand,
 				rd_l2req_op,
@@ -150,6 +153,7 @@ module l2_cache_smi
 			{ 
 				smi_duplicate_request,
 				smi_fill_l2_way,
+				smi_l2req_core,
 				smi_l2req_unit,
 				smi_l2req_strand,
 				smi_l2req_op,

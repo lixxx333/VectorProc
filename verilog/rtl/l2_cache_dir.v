@@ -28,6 +28,7 @@ module l2_cache_dir(
 	input                            clk,
 	input                            stall_pipeline,
 	input                            tag_l2req_valid,
+	input[1:0]                       tag_l2req_core,
 	input[1:0]                       tag_l2req_unit,
 	input[1:0]                       tag_l2req_strand,
 	input[2:0]                       tag_l2req_op,
@@ -48,6 +49,7 @@ module l2_cache_dir(
 	input                            tag_l2_valid2,
 	input                            tag_l2_valid3,
 	output reg                       dir_l2req_valid = 0,
+	output reg[1:0]                  dir_l2req_core = 0,
 	output reg[1:0]                  dir_l2req_unit = 0,
 	output reg[1:0]                  dir_l2req_strand = 0,
 	output reg[2:0]                  dir_l2req_op = 0,
@@ -62,8 +64,10 @@ module l2_cache_dir(
 	output reg[1:0]                  dir_replace_l2_way = 0,
 	output reg                       dir_cache_hit = 0,
 	output reg[`L2_TAG_WIDTH - 1:0]  dir_old_l2_tag = 0,
-	output                           dir_l1_has_line,
-	output [`NUM_CORES * 2 - 1:0]    dir_l1_way,
+	output                           dir_l1_has_line_core0,
+	output [`NUM_CORES * 2 - 1:0]    dir_l1_way_core0,
+	output                           dir_l1_has_line_core1,
+	output [`NUM_CORES * 2 - 1:0]    dir_l1_way_core1,
 	output                           dir_l2_dirty0,
 	output                           dir_l2_dirty1,
 	output                           dir_l2_dirty2,
@@ -82,21 +86,34 @@ module l2_cache_dir(
 		&& (tag_l2req_op == `L2REQ_LOAD || tag_l2req_op == `L2REQ_LOAD_SYNC) 
 		&& (cache_hit || tag_has_sm_data)
 		&& tag_l2req_unit == `UNIT_DCACHE;
+	wire update_directory_core0 = update_directory /* And core 0... */;
+	wire update_directory_core1 = update_directory /* And core 1... */;
 	
 	// The directory is basically a clone of the tag memories for all core's L1 data
 	// caches.
-	l1_cache_tag directory0(
+	l1_cache_tag directory_core0(
 		.clk(clk),
 		.address_i({ tag_l2req_address, 6'd0 }),
 		.access_i(tag_l2req_valid),
-		.cache_hit_o(dir_l1_has_line),
-		.hit_way_o(dir_l1_way),
+		.cache_hit_o(dir_l1_has_line_core0),
+		.hit_way_o(dir_l1_way_core0),
 		.invalidate_i(0),
-		.update_i(update_directory),
+		.update_i(update_directory_core0),
 		.update_way_i(tag_l2req_way),
 		.update_tag_i(requested_l1_tag),
 		.update_set_i(requested_l1_set));
 
+	l1_cache_tag directory_core1(
+		.clk(clk),
+		.address_i({ tag_l2req_address, 6'd0 }),
+		.access_i(tag_l2req_valid),
+		.cache_hit_o(dir_l1_has_line_core1),
+		.hit_way_o(dir_l1_way_core1),
+		.invalidate_i(0),
+		.update_i(update_directory_core1),
+		.update_way_i(tag_l2req_way),
+		.update_tag_i(requested_l1_tag),
+		.update_set_i(requested_l1_set));
 
 	wire l2_hit0 = tag_l2_tag0 == requested_l2_tag && tag_l2_valid0;
 	wire l2_hit1 = tag_l2_tag1 == requested_l2_tag && tag_l2_valid1;
@@ -196,6 +213,7 @@ module l2_cache_dir(
 		if (!stall_pipeline)
 		begin
 			dir_l2req_valid <= #1 tag_l2req_valid;
+			dir_l2req_core <= #1 tag_l2req_core;
 			dir_l2req_unit <= #1 tag_l2req_unit;
 			dir_l2req_strand <= #1 tag_l2req_strand;
 			dir_l2req_op <= #1 tag_l2req_op;
