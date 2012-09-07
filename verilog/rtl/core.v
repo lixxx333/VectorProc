@@ -22,6 +22,8 @@
 //
 
 module core
+	#(parameter			CORE_ID = 30'd0)
+
 	(input				clk,
 	output 				l2req_valid,
 	input				l2req_ack,
@@ -215,7 +217,7 @@ module core
 
 	wire[3:0] dcache_resume_strands = dcache_load_complete_strands | store_resume_strands;
 
-	pipeline pipeline(/*AUTOINST*/
+	pipeline #(CORE_ID) pipeline(/*AUTOINST*/
 			  // Outputs
 			  .icache_addr		(icache_addr[31:0]),
 			  .icache_request	(icache_request),

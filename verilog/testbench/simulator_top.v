@@ -60,15 +60,6 @@ module simulator_top;
 	wire		axi_wlast;		// From l2_cache of l2_cache.v
 	wire		axi_wready;		// From memory of sim_memory.v
 	wire		axi_wvalid;		// From l2_cache of l2_cache.v
-	wire		l2req_ack;		// From l2_cache of l2_cache.v
-	wire [25:0]	l2req_address;		// From core of core.v
-	wire [511:0]	l2req_data;		// From core of core.v
-	wire [63:0]	l2req_mask;		// From core of core.v
-	wire [2:0]	l2req_op;		// From core of core.v
-	wire [1:0]	l2req_strand;		// From core of core.v
-	wire [1:0]	l2req_unit;		// From core of core.v
-	wire		l2req_valid;		// From core of core.v
-	wire [1:0]	l2req_way;		// From core of core.v
 	wire [1:0]	l2rsp_core;		// From l2_cache of l2_cache.v
 	wire [511:0]	l2rsp_data;		// From l2_cache of l2_cache.v
 	wire [1:0]	l2rsp_op;		// From l2_cache of l2_cache.v
@@ -80,29 +71,96 @@ module simulator_top;
 	wire [1:0]	l2rsp_way;		// From l2_cache of l2_cache.v
 	// End of automatics
 	
-	core core(
-		.halt_o(processor_halt),
+	wire l2req_valid;
+	wire l2req_ack;
+	wire[1:0] l2req_core;
+	wire[1:0] l2req_unit;
+	wire[1:0] l2req_strand;
+	wire[2:0] l2req_op;
+	wire[1:0] l2req_way;
+	wire[25:0] l2req_address;
+	wire[511:0] l2req_data;
+	wire[63:0] l2req_mask;
+	wire l2req_valid_core0;
+	wire l2req_ack_core0;
+	wire[1:0] l2req_core_core0;
+	wire[1:0] l2req_unit_core0;
+	wire[1:0] l2req_strand_core0;
+	wire[2:0] l2req_op_core0;
+	wire[1:0] l2req_way_core0;
+	wire[25:0] l2req_address_core0;
+	wire[511:0] l2req_data_core0;
+	wire[63:0] l2req_mask_core0;
+	wire l2req_valid_core1;
+	wire[1:0] l2req_core_core1;
+	wire[1:0] l2req_unit_core1;
+	wire[1:0] l2req_strand_core1;
+	wire[2:0] l2req_op_core1;
+	wire[1:0] l2req_way_core1;
+	wire[25:0] l2req_address_core1;
+	wire[511:0] l2req_data_core1;
+	wire[63:0] l2req_mask_core1;
+	wire l2grant_core0;
+	wire l2grant_core1;
+
+	wire processor_halt0;
+	wire processor_halt1;
+	assign processor_halt = processor_halt0 | processor_halt1;	
+	
+	arbiter #(2) l2req_arb(
+		.clk(clk),
+		.request({l2req_valid_core1, l2req_valid_core0}),
+		.update_lru(1),	// XXX not always quite right
+		.grant_oh({l2grant_core0, l2grant_core1}));
+
+	core core0(
+		.halt_o(processor_halt0),
+		.l2req_valid(l2req_valid_core0),
+		.l2req_strand(l2req_strand_core0),
+		.l2req_unit(l2req_unit_core0),
+		.l2req_op(l2req_op_core0),
+		.l2req_way(l2req_way_core0),
+		.l2req_address(l2req_address_core0),
+		.l2req_data(l2req_data_core0),
+		.l2req_mask(l2req_mask_core0),
+
 		/*AUTOINST*/
-		  // Outputs
-		  .l2req_valid		(l2req_valid),
-		  .l2req_strand		(l2req_strand[1:0]),
-		  .l2req_unit		(l2req_unit[1:0]),
-		  .l2req_op		(l2req_op[2:0]),
-		  .l2req_way		(l2req_way[1:0]),
-		  .l2req_address	(l2req_address[25:0]),
-		  .l2req_data		(l2req_data[511:0]),
-		  .l2req_mask		(l2req_mask[63:0]),
-		  // Inputs
-		  .clk			(clk),
-		  .l2req_ack		(l2req_ack),
-		  .l2rsp_valid		(l2rsp_valid),
-		  .l2rsp_status		(l2rsp_status),
-		  .l2rsp_unit		(l2rsp_unit[1:0]),
-		  .l2rsp_strand		(l2rsp_strand[1:0]),
-		  .l2rsp_op		(l2rsp_op[1:0]),
-		  .l2rsp_update		(l2rsp_update),
-		  .l2rsp_way		(l2rsp_way[1:0]),
-		  .l2rsp_data		(l2rsp_data[511:0]));
+		   // Inputs
+		   .clk			(clk),
+		   .l2req_ack		(l2req_ack),
+		   .l2rsp_valid		(l2rsp_valid),
+		   .l2rsp_status	(l2rsp_status),
+		   .l2rsp_unit		(l2rsp_unit[1:0]),
+		   .l2rsp_strand	(l2rsp_strand[1:0]),
+		   .l2rsp_op		(l2rsp_op[1:0]),
+		   .l2rsp_update	(l2rsp_update),
+		   .l2rsp_way		(l2rsp_way[1:0]),
+		   .l2rsp_data		(l2rsp_data[511:0]));
+
+	core core1(
+		.halt_o(processor_halt1),
+		.l2req_valid(l2req_valid_core1),
+		.l2req_strand(l2req_strand_core1),
+		.l2req_unit(l2req_unit_core1),
+		.l2req_op(l2req_op_core1),
+		.l2req_way(l2req_way_core1),
+		.l2req_address(l2req_address_core1),
+		.l2req_data(l2req_data_core1),
+		.l2req_mask(l2req_mask_core1),
+
+		/*AUTOINST*/
+		   // Inputs
+		   .clk			(clk),
+		   .l2req_ack		(l2req_ack),
+		   .l2rsp_valid		(l2rsp_valid),
+		   .l2rsp_status	(l2rsp_status),
+		   .l2rsp_unit		(l2rsp_unit[1:0]),
+		   .l2rsp_strand	(l2rsp_strand[1:0]),
+		   .l2rsp_op		(l2rsp_op[1:0]),
+		   .l2rsp_update	(l2rsp_update),
+		   .l2rsp_way		(l2rsp_way[1:0]),
+		   .l2rsp_data		(l2rsp_data[511:0]));
+
 
 	l2_cache l2_cache(
 			  .l2req_core		(2'd0),	// Only one core now
@@ -181,7 +239,7 @@ module simulator_top;
 
 		do_register_dump = 0; // Dump all registers at end
 
-		`define PIPELINE core.pipeline
+		`define PIPELINE core0.pipeline
 		`define SS_STAGE `PIPELINE.strand_select_stage
 		`define VREG_FILE `PIPELINE.vector_register_file
 		`define SFSM0 `SS_STAGE.strand_fsm0
@@ -249,27 +307,27 @@ module simulator_top;
 				#5 clk = 1;
 				#5 clk = 0;
 				
-				wb_pc <= core.pipeline.ma_pc;
+				wb_pc <= core0.pipeline.ma_pc;
 
 				// Display register dump
-				if (core.pipeline.wb_has_writeback)
+				if (core0.pipeline.wb_has_writeback)
 				begin
-					if (core.pipeline.wb_writeback_is_vector)
+					if (core0.pipeline.wb_writeback_is_vector)
 					begin
 						$display("%08x [st %d] v%d{%04x} <= %128x", 
 							wb_pc - 4, 
-							core.pipeline.wb_writeback_reg[6:5], 
-							core.pipeline.wb_writeback_reg[4:0], 
-							core.pipeline.wb_writeback_mask,
-							core.pipeline.wb_writeback_value);
+							core0.pipeline.wb_writeback_reg[6:5], 
+							core0.pipeline.wb_writeback_reg[4:0], 
+							core0.pipeline.wb_writeback_mask,
+							core0.pipeline.wb_writeback_value);
 					end
 					else
 					begin
 						$display("%08x [st %d] s%d <= %8x", 
 							wb_pc - 4, 
-							core.pipeline.wb_writeback_reg[6:5], 
-							core.pipeline.wb_writeback_reg[4:0], 
-							core.pipeline.wb_writeback_value[31:0]);
+							core0.pipeline.wb_writeback_reg[6:5], 
+							core0.pipeline.wb_writeback_reg[4:0], 
+							core0.pipeline.wb_writeback_value[31:0]);
 					end
 				end
 			end
@@ -323,11 +381,11 @@ module simulator_top;
 			+ `SFSM2.icache_wait_count
 			+ `SFSM3.icache_wait_count);
 		$display("L1 icache hits %d misses %d", 
-			core.icache.hit_count, core.icache.miss_count);
+			core0.icache.hit_count, core0.icache.miss_count);
 		$display("L1 dcache hits %d misses %d", 
-			core.dcache.hit_count, core.dcache.miss_count);
+			core0.dcache.hit_count, core0.dcache.miss_count);
 		$display("L1 store count %d",
-			core.store_buffer.store_count);
+			core0.store_buffer.store_count);
 		$display("L2 cache hits %d misses %d",
 			l2_cache.hit_count, l2_cache.miss_count);
 
